@@ -4,3 +4,5 @@ __pycache__/
 node_modules/
 vendor/
 _build/
+php/phpDocumentor.phar
+.phpdoc/
