@@ -1,0 +1,17 @@
+name: Comprobar archivos (composite)
+description: Comprueba que existen README.md, LICENSE y CONTRIBUTING.md
+
+runs:
+  using: composite
+  steps:
+    - name: Comprobar archivos
+      shell: bash
+      run: |
+        for f in README.md LICENSE CONTRIBUTING.md; do
+          if [ -f "$f" ]; then
+            echo "OK: $f existe"
+          else
+            echo "::error::Falta $f"
+            exit 1
+          fi
+        done
