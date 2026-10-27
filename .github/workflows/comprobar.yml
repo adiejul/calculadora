@@ -6,5 +6,14 @@ jobs:
   comprobar:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/comprobar-composite
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Accion composite
+        uses: ./.github/actions/comprobar-composite
+
+      - name: Accion javascript
+        uses: ./.github/actions/comprobar-js
+
+      - name: Accion Docker
+        uses: ./.github/actions/comprobar-docker
