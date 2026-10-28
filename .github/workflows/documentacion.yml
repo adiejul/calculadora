@@ -72,3 +72,46 @@ jobs:
         with:
           name: docs-php
           path: php/salida-docs
+
+  publicar:
+    needs: [python, javascript, php]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Descargar las tres documentaciones
+        uses: actions/download-artifact@v4
+        with:
+          pattern: docs-*
+          path: sitio
+
+      - name: Crear página de inicio
+        run: |
+          cat > sitio/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="es">
+          <head><meta charset="utf-8"><title>Calculadora de precios</title></head>
+          <body>
+            <h1>Calculadora de precios: documentación</h1>
+            <ul>
+              <li><a href="docs-python/index.html">Python (Sphinx)</a></li>
+              <li><a href="docs-javascript/index.html">JavaScript (JSDoc)</a></li>
+              <li><a href="docs-php/index.html">PHP (phpDocumentor)</a></li>
+            </ul>
+          </body>
+          </html>
+          EOF
+
+      - name: Preparar el sitio para Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: sitio
+
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
