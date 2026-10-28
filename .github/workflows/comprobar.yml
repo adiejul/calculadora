@@ -1,0 +1,21 @@
+name: Comprobar documentación
+
+on: [push]
+
+jobs:
+  comprobar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Accion composite
+        uses: ./.github/actions/comprobar-composite
+
+      - name: Accion javascript
+        if: always()
+        uses: ./.github/actions/comprobar-js
+
+      - name: Accion Docker
+        if: always()
+        uses: ./.github/actions/comprobar-docker

@@ -6,3 +6,4 @@ vendor/
 _build/
 php/phpDocumentor.phar
 .phpdoc/
+documentacion.md
