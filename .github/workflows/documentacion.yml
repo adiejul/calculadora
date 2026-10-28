@@ -1,0 +1,117 @@
+name: Generar documentación
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar Sphinx
+        run: pip install sphinx
+
+      - name: Generar HTML con Sphinx
+        run: make html
+        working-directory: python/docs
+
+      - name: Guardar documentación
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-python
+          path: python/docs/_build/html
+
+  javascript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Instalar dependencias
+        run: npm ci
+        working-directory: javascript
+
+      - name: Generar HTML con JSDoc
+        run: npx jsdoc calculadora.js -d salida-docs
+        working-directory: javascript
+
+      - name: Guardar documentación
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-javascript
+          path: javascript/salida-docs
+
+  php:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+
+      - name: Descargar phpDocumentor
+        run: curl -L -o phpDocumentor.phar https://github.com/phpDocumentor/phpDocumentor/releases/latest/download/phpDocumentor.phar
+        working-directory: php
+
+      - name: Generar HTML con phpDocumentor
+        run: php phpDocumentor.phar run -f calculadora.php -t salida-docs
+        working-directory: php
+
+      - name: Guardar documentación
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-php
+          path: php/salida-docs
+
+  publicar:
+    needs: [python, javascript, php]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Descargar las tres documentaciones
+        uses: actions/download-artifact@v4
+        with:
+          pattern: docs-*
+          path: sitio
+
+      - name: Crear página de inicio
+        run: |
+          cat > sitio/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="es">
+          <head><meta charset="utf-8"><title>Calculadora de precios</title></head>
+          <body>
+            <h1>Calculadora de precios: documentación</h1>
+            <ul>
+              <li><a href="docs-python/index.html">Python (Sphinx)</a></li>
+              <li><a href="docs-javascript/index.html">JavaScript (JSDoc)</a></li>
+              <li><a href="docs-php/index.html">PHP (phpDocumentor)</a></li>
+            </ul>
+          </body>
+          </html>
+          EOF
+
+      - name: Preparar el sitio para Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: sitio
+
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
