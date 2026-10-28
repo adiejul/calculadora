@@ -1,0 +1,6 @@
+name: Comprobar archivos (JavaScript)
+description: Comprueba que existen README.md, LICENSE y CONTRIBUTING.md
+
+runs:
+  using: node24
+  main: index.js
